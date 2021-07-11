@@ -1,0 +1,113 @@
+---
+title: "georgia_runoffs_update"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r}
+library(tidyverse)
+library(readr)
+```
+# # Importing Files
+
+```{r}
+ga_senate <- read_csv(file = "georgiasenate.csv", col_names = TRUE)
+
+ga_pres <- read_csv(file = "georgiapresident.csv", col_names = TRUE)
+```
+# # Comparing Senate and Special Election results
+
+# Margin Change in Republican Counties
+
+```{r}
+  ga_senate %>% group_by(County, Election) %>% filter(Rparty == 'R') %>% ggplot() +
+  geom_histogram(mapping = aes(x=MarginChange), binwidth = 0.5) + 
+  facet_wrap(~Election)
+```
+# Margin Change in Dem Counties
+```{r}
+  ga_senate %>% group_by(County, Election) %>% filter(Rparty == 'D') %>% ggplot() +
+  geom_histogram(mapping = aes(x=MarginChange), binwidth = 0.5) + 
+  facet_wrap(~Election)
+```
+#Checking Pos/Neg Margin Changes
+
+```{r}
+ga_senate %>% group_by(County, Election) %>% filter(Rparty == 'D') %>% summarise(MarginChange) %>% arrange(MarginChange)
+```
+# CandidateFlip
+
+```{r}
+ga_senate %>% group_by(County, Election) %>% filter(Nwinner != Rwinner) %>% summarise(Nwinner, Rwinner, MarginChange)
+```
+# Party Flip
+```{r}
+ga_senate %>% group_by(County, Election) %>% filter(Nparty != Rparty) %>% summarise(Nwinner, Rwinner, MarginChange)
+```
+
+# Characteristics of Counties Where Republicans Gained Ground
+
+```{r}
+  ga_senate %>% group_by(County, Election) %>% filter(Rparty == 'R') %>% filter(MarginChange>=0) %>% summarise(Election, MarginChange, Nwinner, Rwinner, NoTurnoutChange)
+
+```
+```{r}
+  ga_senate %>% group_by(County, Election) %>% filter(Rparty == 'R') %>% filter(MarginChange>=0) %>% ggplot() + geom_density(mapping = aes(x=TurnoutPctChange))
+
+ ga_senate %>% group_by(County, Election) %>% filter(Rparty == 'R') %>% filter(MarginChange<=0) %>% ggplot() + geom_density(mapping = aes(x=TurnoutPctChange))
+
+```
+
+
+# Collins to Warnock
+
+```{r}
+ga_senate %>% group_by(County, Election) %>% filter(Nwinner == 'Collins') %>% summarise(Nwinner, Rwinner, MarginChange)
+
+```
+# Turnout by margin pos/neg
+
+# #Comparing Turnout Overall
+
+```{r}
+ga_senate %>% ggplot() + 
+  geom_point(mapping = aes(x=Nmargin, y=TurnoutPctChange, color = Nparty)) + 
+  facet_wrap(~Nparty)
+
+```
+
+```{r}
+
+```
+
+
+# # Special Election
+
+# Turnout pct changes
+
+```{r}
+ga_senate %>% ggplot() + 
+  geom_point(mapping = aes(y=MarginChange, x=TurnoutPctChange, color = Nparty)) + 
+  facet_wrap(~Rparty, scales = "free_y")
+```
+
+
+# Margin Changes
+
+```{r}
+ga_senate %>% ggplot() + 
+  geom_point(mapping = aes(y=MarginChange, x=WinnerNoChange, color = Nparty)) + 
+  facet_wrap(~Rparty, scales = "free")
+
+```
+
+
