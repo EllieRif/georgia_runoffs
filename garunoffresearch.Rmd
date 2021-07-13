@@ -44,6 +44,13 @@ ga_pres <- read_csv(file = "georgiapresident.csv", col_names = TRUE)
 ```{r}
 ga_senate %>% group_by(County, Election) %>% filter(Rparty == 'D') %>% summarise(MarginChange) %>% arrange(MarginChange)
 ```
+# comparing margins
+
+```{r}
+ga_senate %>% ggplot() +
+  geom_histogram(mapping = aes(x=MarginChange, fill=Rwinner))
+```
+
 # CandidateFlip
 
 ```{r}
@@ -105,9 +112,83 @@ ga_senate %>% ggplot() +
 
 ```{r}
 ga_senate %>% ggplot() + 
-  geom_point(mapping = aes(y=MarginChange, x=WinnerNoChange, color = Nparty)) + 
+  geom_point(mapping = aes(y=MarginChange, x=WinnerPctChange, color = Nparty)) + 
   facet_wrap(~Rparty, scales = "free")
 
 ```
 
+# # Comparing Senate and President
+
+# DF Setup
+
+```{r}
+SpecialElection <- ga_senate %>% filter(Election == "SPECIAL")
+NormalElection <-ga_senate %>% filter(Election == "SENATE")
+
+pres_special <- data.frame(
+  county = ga_pres$County,
+  pres_winner = ga_pres$Winner,
+  pres_margin = ga_pres$Margin,
+  sen_winner = SpecialElection$Rwinner,
+  rsen_margin = SpecialElection$Rmargin,
+  nsen_margin = SpecialElection$Nmargin,
+  margin_change = SpecialElection$MarginChange,
+  nmargin_diff = SpecialElection$Nmargin - ga_pres$Margin,
+  rmargin_diff = SpecialElection$Rmargin - ga_pres$Margin
+  
+)
+
+pres_normal <- data.frame(
+  county = ga_pres$County,
+  pres_winner = ga_pres$Winner,
+  pres_margin = ga_pres$Margin,
+  sen_winner = NormalElection$Rwinner,
+  rsen_margin = NormalElection$Rmargin,
+  nsen_margin = NormalElection$Nmargin,
+  margin_change = NormalElection$MarginChange,
+  nmargin_diff = NormalElection$Nmargin-ga_pres$Margin,
+  rmargin_diff = NormalElection$Rmargin-ga_pres$Margin
+  
+)
+
+```
+
+# Comparing President and Regular Election
+
+```{r}
+pres_normal %>% ggplot() + 
+  geom_density(mapping = aes(x=nmargin_diff, color = pres_winner)) + 
+  facet_wrap(~sen_winner)
+
+pres_normal %>% ggplot() + 
+  geom_histogram(mapping = aes(x=nmargin_diff, color = pres_winner)) + 
+  facet_wrap(~sen_winner)
+
+pres_normal %>% ggplot() + 
+  geom_count(mapping = aes(x=sen_winner, y = pres_winner))
+
+pres_normal %>% ggplot() + geom_point(mapping = aes(x = pres_margin, y = rsen_margin, color = pres_winner)) + facet_wrap(~pres_winner)
+pres_normal %>% ggplot() + geom_point(mapping = aes(x = margin_change, y = rmargin_diff, color = sen_winner)) + facet_wrap(~sen_winner)
+
+pres_normal %>% ggplot() + geom_point(mapping = aes(x = pres_margin, y = rmargin_diff, color = sen_winner)) + facet_wrap(~sen_winner)
+
+```
+#comparing president and special election
+```{r}
+pres_special %>% ggplot() + 
+  geom_density(mapping = aes(x=nmargin_diff, color = pres_winner)) + 
+  facet_wrap(~sen_winner)
+pres_special %>% ggplot() + 
+  geom_density(mapping = aes(x=nmargin_diff, color = pres_winner)) + 
+  facet_wrap(~sen_winner)
+
+pres_normal %>% ggplot() + 
+  geom_count(mapping = aes(x=sen_winner, y = pres_winner))
+
+pres_normal %>% ggplot() + geom_point(mapping = aes(x = pres_margin, y = rsen_margin), color = "red") + geom_point(mapping = aes(x = pres_margin, y = nsen_margin), color = "black") + facet_wrap(~pres_winner)
+```
+
+```{r}
+pres_special %>% filter(pres_winner == "Trump" & sen_winner == "Warnock")
+```
 
