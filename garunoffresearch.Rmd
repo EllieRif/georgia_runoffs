@@ -23,6 +23,8 @@ library(readr)
 ga_senate <- read_csv(file = "georgiasenate.csv", col_names = TRUE)
 
 ga_pres <- read_csv(file = "georgiapresident.csv", col_names = TRUE)
+
+ga_demos <- read_csv(file = "selectgeorgiademos.csv", col_names = TRUE)
 ```
 # # Comparing Senate and Special Election results
 
@@ -115,6 +117,11 @@ ga_senate %>% ggplot() +
   geom_point(mapping = aes(y=MarginChange, x=WinnerPctChange, color = Nparty)) + 
   facet_wrap(~Rparty, scales = "free")
 
+ga_senate %>% ggplot() + 
+  geom_point(mapping = aes(y=RPctAbsentee, x=NPctAbsentee, color = Nparty)) + 
+  facet_wrap(~Rparty, scales = "free")
+
+
 ```
 
 # # Comparing Senate and President
@@ -190,5 +197,19 @@ pres_normal %>% ggplot() + geom_point(mapping = aes(x = pres_margin, y = rsen_ma
 
 ```{r}
 pres_special %>% filter(pres_winner == "Trump" & sen_winner == "Warnock")
+```
+# # Demographic Research
+
+```{r}
+pres_normal %>% filter(county %in% ga_demos$County) %>% select(county, pres_winner, sen_winner, nmargin_diff, rmargin_diff, margin_change ) %>% ggplot() +
+  geom_histogram(mapping=aes(x=rmargin_diff, fill = pres_winner), position = "dodge")
+
+
+pres_normal %>% filter(county %in% ga_demos$County) %>% select(county, pres_winner, sen_winner, nmargin_diff, rmargin_diff, margin_change ) %>% ggplot() +
+  geom_histogram(mapping=aes(x=nmargin_diff, fill = pres_winner), position = "dodge")
+
+
+pres_normal %>% filter(county %in% ga_demos$County) %>% select(county, pres_winner, sen_winner, nmargin_diff, rmargin_diff, margin_change ) %>%  group_by(pres_winner) %>% summarise(n_avgdiff = mean(nmargin_diff), r_avgdiff = mean(rmargin_diff))
+
 ```
 
